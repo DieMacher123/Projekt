@@ -18,6 +18,7 @@ namespace Projekt
 
             FüllenMitWänden(dunguen);
 
+            
             DungeonAusgeben(dunguen);
             Console.ReadLine();
         }
