@@ -14,10 +14,13 @@ namespace Projekt
             int höhe = EingabeZahl("Höhe: ");
             int breite = EingabeZahl("Breite: ");
 
+            // Erstellung des dunguens
             char[,] dunguen = new char[höhe, breite];
 
+            // Alles mit wänden Füllen
             FüllenMitWänden(dunguen);
 
+            // Alles ausgeben
             DungeonAusgeben(dunguen);
             Console.ReadLine();
         }
