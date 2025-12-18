@@ -10,25 +10,9 @@ namespace Projekt
     {
         static void Main(string[] args)
         {
-            int höhe;
-            int breite;
-
             Console.WriteLine("Willkommen, bitte breite und länge eingeben: ");
-
-
-
-            string eingabe = Console.ReadLine();
-            while (!int.TryParse(eingabe, out höhe))
-            {
-                Console.Write("Erneut eingeben: ");
-                eingabe = Console.ReadLine();
-            }
-            string eingabe2 = Console.ReadLine();
-            while (!int.TryParse(eingabe2, out breite))
-            {
-                Console.Write("Erneut eingeben: ");
-                eingabe2 = Console.ReadLine();
-            }
+            int höhe = EingabeZahl("Höhe: ");
+            int breite = EingabeZahl("Breite: ");
 
             char[,] dunguen = new char[höhe, breite];
 
@@ -37,6 +21,19 @@ namespace Projekt
             DungeonAusgeben(dunguen);
             Console.ReadLine();
         }
+
+
+        static int EingabeZahl(string eingabe)
+        {
+            int zahl;   
+            Console.Write(eingabe);
+            while (!int.TryParse(Console.ReadLine(), out zahl))
+            {
+                Console.Write("Ungültige Eingabe, bitte erneut eingeben: ");
+            }
+            return zahl;
+        }
+    
 
         // Wände Füllen mit #
         static void FüllenMitWänden(char[,] karte)
