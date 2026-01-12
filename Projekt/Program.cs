@@ -6,7 +6,6 @@ class DungeonGenerator
 
     static void Main()
     {
-
         Console.WriteLine("Willkommen, bitte breite und länge eingeben: ");
 
         // Eingabe der höhe und breite
@@ -26,19 +25,19 @@ class DungeonGenerator
     // Dungeon erzeugen
     public static char[,] GenerateDungeon(int height, int width)
     {
-        // Ungerade Maße erzwingen
+        // Ungerade Länge und höhe des Dungeons erzwingen
         if (height % 2 == 0) height++;
         if (width % 2 == 0) width++;
 
-        char[,] map = new char[height, width];
+        char[,] dungeon = new char[height, width];
 
         // Alles mit Wänden füllen
         for (int y = 0; y < height; y++)
             for (int x = 0; x < width; x++)
-                map[y, x] = '#';
+                dungeon[y, x] = '#';
 
         // Maze erzeugen
-        LabyrinthWege(map, 1, 1);
+        LabyrinthWege(dungeon, 1, 1);
 
         // Start zufällig
         int sx, sy;
@@ -47,9 +46,9 @@ class DungeonGenerator
             sx = rnd.Next(1, width - 1);
             sy = rnd.Next(1, height - 1);
         }
-        while (map[sy, sx] != '.');
+        while (dungeon[sy, sx] != '.');
 
-        map[sy, sx] = 'S';
+        dungeon[sy, sx] = 'S';
 
         // Ende zufällig
         int ex, ey;
@@ -58,23 +57,24 @@ class DungeonGenerator
             ex = rnd.Next(1, width - 1);
             ey = rnd.Next(1, height - 1);
         }
-        while (map[ey, ex] != '.' || (ex == sx && ey == sy));
+        while (dungeon[ey, ex] != '.' || (ex == sx && ey == sy));
 
-        map[ey, ex] = 'E';
+        dungeon[ey, ex] = 'E';
 
         // Truhen setzen
-        for (int i = 0; i < 5; i++)
-            SetRandomChest(map, rnd);
-
-        return map;
+        for (int i = 0; i < 5; i++) { 
+            SetRandomChest(dungeon, rnd);
+        }
+        return dungeon;
     }
 
 
     // Labyrinth Wege erstellen
-    private static void LabyrinthWege(char[,] map, int y, int x)
+    private static void LabyrinthWege(char[,] dungeon, int y, int x)
     {
-        map[y, x] = '.';
+        dungeon[y, x] = '.';
 
+        // mögliche rintungen (dirs)
         int[][] dirs = new int[][]
         {
             new int[]{ 0, 2 },
@@ -83,7 +83,7 @@ class DungeonGenerator
             new int[]{-2, 0 }
         };
 
-        // Richtungen mischen
+        // Richtungen zufällig generieren
         for (int i = 0; i < dirs.Length; i++)
         {
             int r = rnd.Next(dirs.Length);
@@ -92,41 +92,49 @@ class DungeonGenerator
             dirs[r] = temp;
         }
 
-        // In jede Richtung graben
+        // In jede Richtung gehen
         for (int i = 0; i < dirs.Length; i++)
         {
+            // Aktuelle Richtung aus dem Array holen (dy, dx)
             int[] d = dirs[i];
 
-            int nx = x + d[1];
-            int ny = y + d[0];
+            // Neue Zielposition generieren (2 Felder weiter)
+            int nx = x + d[1]; // neue x Position
+            int ny = y + d[0]; // neue y Position
 
-            if (ny > 0 && ny < map.GetLength(0) - 1 &&
-                nx > 0 && nx < map.GetLength(1) - 1 &&
-                map[ny, nx] == '#')
+            // Prüfen ob die neue Position gültig ist ->
+            // Im Spielfeld? Ja/Nein
+            // Ist da eine Wand? Ja/Nein
+            if (ny > 0 && ny < dungeon.GetLength(0) - 1 &&
+                nx > 0 && nx < dungeon.GetLength(1) - 1 &&
+                dungeon[ny, nx] == '#')
             {
-                // Wand zwischen den Zellen öffnen
-                map[y + d[0] / 2, x + d[1] / 2] = '.';
+                // Die Wand zwischen aktueller Position und neuer Position entfernen
+                // Beispiel: von (5,5) nach (5,7) -> Wand ist bei (5,6)
+                dungeon[y + d[0] / 2, x + d[1] / 2] = '.';
 
-                LabyrinthWege(map, ny, nx);
+                LabyrinthWege(dungeon, ny, nx);
             }
         }
+
     }
 
 
     // Truhe setzen
-    private static void SetRandomChest(char[,] map, Random rnd)
+    private static void SetRandomChest(char[,] dungeon, Random rnd)
     {
-        int w = map.GetLength(1);
-        int h = map.GetLength(0);
+        // Größe des dungeons
+        int w = dungeon.GetLength(1);
+        int h = dungeon.GetLength(0);
 
         while (true)
         {
             int x = rnd.Next(1, w - 1);
             int y = rnd.Next(1, h - 1);
 
-            if (map[y, x] == '.')
+            if (dungeon[y, x] == '.')
             {
-                map[y, x] = 'T';
+                dungeon[y, x] = 'T';
                 return;
             }
         }
@@ -134,23 +142,23 @@ class DungeonGenerator
 
 
     // Ausgabe Farbig ausgeben
-    public static void PrintDungeonColored(char[,] map)
+    public static void PrintDungeonColored(char[,] dungeon)
     {
-        for (int y = 0; y < map.GetLength(0); y++)
+        for (int y = 0; y < dungeon.GetLength(0); y++)
         {
-            for (int x = 0; x < map.GetLength(1); x++)
+            for (int x = 0; x < dungeon.GetLength(1); x++)
             {
-                char c = map[y, x];
+                char c = dungeon[y, x];
 
-                if (c == '.')
+                if (c == '.') // Weg
                     Console.ForegroundColor = ConsoleColor.DarkGray;
-                else if (c == '#')
+                else if (c == '#') // Wand
                     Console.ForegroundColor = ConsoleColor.White;
-                else if (c == 'S')
+                else if (c == 'S') // Start
                     Console.ForegroundColor = ConsoleColor.Green;
-                else if (c == 'E')
+                else if (c == 'E') // Ende
                     Console.ForegroundColor = ConsoleColor.Red;
-                else if (c == 'T')
+                else if (c == 'T') // Truhe
                     Console.ForegroundColor = ConsoleColor.Yellow;
                 else
                     Console.ForegroundColor = ConsoleColor.Gray;
