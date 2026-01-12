@@ -11,15 +11,18 @@ namespace Projekt
         static void Main(string[] args)
         {
             Console.WriteLine("Willkommen, bitte breite und länge eingeben: ");
+
+            // Eingabe der höhe und breite
             int höhe = EingabeZahl("Höhe: ");
             int breite = EingabeZahl("Breite: ");
 
+            // Erstellung des Dungeons
             var dungeon = GenerateDungeon(höhe, breite); 
 
-            GenerateDungeon(höhe, breite);
+            // Dungeon Ausgeben
             PrintDungeon(dungeon);
+
             // Alles ausgeben
-            //PrintDungeon(dungeon);
             Console.ReadLine();
         }
 
@@ -62,6 +65,7 @@ namespace Projekt
             return map;
         }
 
+        // Erstellung des Labyrinths
         private static void LabyrinthWege(char[,] map, int y, int x)
         {
             map[y, x] = '.';
@@ -75,16 +79,18 @@ namespace Projekt
             new []{-2, 0 }
             };
 
-            // mischen
+            // random
             for (int i = 0; i < dirs.Length; i++)
             {
                 int r = rnd.Next(dirs.Length);
                 (dirs[i], dirs[r]) = (dirs[r], dirs[i]);
             }
 
-            // in jede Richtung graben
-            foreach (var d in dirs)
+            // in jede Richtung gehen
+            for (int i = 0; i < dirs.Length; i++)
             {
+                int[] d = dirs[i];
+
                 int nx = x + d[1];
                 int ny = y + d[0];
 
@@ -92,12 +98,15 @@ namespace Projekt
                     nx > 0 && nx < map.GetLength(1) - 1 &&
                     map[ny, nx] == '#')
                 {
-                    // Wand zwischen den Zellen öffnen
+                    // Wand zwischen den Zeichen öffnen
                     map[y + d[0] / 2, x + d[1] / 2] = '.';
                     LabyrinthWege(map, ny, nx);
                 }
             }
+
         }
+
+        // Methode zum Ausgeben
         public static void PrintDungeon(char[,] map)
         {
             int h = map.GetLength(0);
@@ -109,13 +118,13 @@ namespace Projekt
                 {
                     char c = map[y, x];
 
-                    if (c == '.')
+                    if (c == '.') // Weg
                         Console.ForegroundColor = ConsoleColor.DarkGray;
-                    else if (c == '#')
+                    else if (c == '#') // Wand
                         Console.ForegroundColor = ConsoleColor.White;
-                    else if (c == 'S')
+                    else if (c == 'S') // Start
                         Console.ForegroundColor = ConsoleColor.Green;
-                    else if (c == 'E')
+                    else if (c == 'E') // Ende
                         Console.ForegroundColor = ConsoleColor.Red;
                     else
                         Console.ForegroundColor = ConsoleColor.Gray;
