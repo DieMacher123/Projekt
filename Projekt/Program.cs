@@ -1,154 +1,178 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Projekt
+class DungeonGenerator
 {
-    class Program
+    static Random rnd = new Random();
+
+    static void Main()
     {
-        static void Main(string[] args)
+
+        Console.WriteLine("Willkommen, bitte breite und länge eingeben: ");
+
+        // Eingabe der höhe und breite
+        int höhe = EingabeZahl("Höhe: ");
+        int breite = EingabeZahl("Breite: ");
+
+        // 2D Array für Dungeon erstellen
+        char[,] dungeon = GenerateDungeon(höhe, breite);
+
+        // Ausgeben
+        PrintDungeonColored(dungeon);
+
+        Console.ReadLine();
+    }
+
+
+    // Dungeon erzeugen
+    public static char[,] GenerateDungeon(int height, int width)
+    {
+        // Ungerade Maße erzwingen
+        if (height % 2 == 0) height++;
+        if (width % 2 == 0) width++;
+
+        char[,] map = new char[height, width];
+
+        // Alles mit Wänden füllen
+        for (int y = 0; y < height; y++)
+            for (int x = 0; x < width; x++)
+                map[y, x] = '#';
+
+        // Maze erzeugen
+        LabyrinthWege(map, 1, 1);
+
+        // Start zufällig
+        int sx, sy;
+        do
         {
-            Console.WriteLine("Willkommen, bitte breite und länge eingeben: ");
+            sx = rnd.Next(1, width - 1);
+            sy = rnd.Next(1, height - 1);
+        }
+        while (map[sy, sx] != '.');
 
-            // Eingabe der höhe und breite
-            int höhe = EingabeZahl("Höhe: ");
-            int breite = EingabeZahl("Breite: ");
+        map[sy, sx] = 'S';
 
-            // Erstellung des Dungeons
-            var dungeon = GenerateDungeon(höhe, breite); 
+        // Ende zufällig
+        int ex, ey;
+        do
+        {
+            ex = rnd.Next(1, width - 1);
+            ey = rnd.Next(1, height - 1);
+        }
+        while (map[ey, ex] != '.' || (ex == sx && ey == sy));
 
-            // Dungeon Ausgeben
-            PrintDungeon(dungeon);
+        map[ey, ex] = 'E';
 
-            // Alles ausgeben
-            Console.ReadLine();
+        // Truhen setzen
+        for (int i = 0; i < 5; i++)
+            SetRandomChest(map, rnd);
+
+        return map;
+    }
+
+
+    // Labyrinth Wege erstellen
+    private static void LabyrinthWege(char[,] map, int y, int x)
+    {
+        map[y, x] = '.';
+
+        int[][] dirs = new int[][]
+        {
+            new int[]{ 0, 2 },
+            new int[]{ 0,-2 },
+            new int[]{ 2, 0 },
+            new int[]{-2, 0 }
+        };
+
+        // Richtungen mischen
+        for (int i = 0; i < dirs.Length; i++)
+        {
+            int r = rnd.Next(dirs.Length);
+            int[] temp = dirs[i];
+            dirs[i] = dirs[r];
+            dirs[r] = temp;
         }
 
-        static Random rnd = new Random();
-
-        public static char[,] GenerateDungeon(int height, int width)
+        // In jede Richtung graben
+        for (int i = 0; i < dirs.Length; i++)
         {
-            // Nur ungerade Maße funktionieren perfekt für Maze-Carving
-            if (height % 2 == 0) height++;
-            if (width % 2 == 0) width++;
+            int[] d = dirs[i];
 
-            char[,] map = new char[height, width];
+            int nx = x + d[1];
+            int ny = y + d[0];
 
-            // 1. Alles mit Wänden füllen
-            for (int y = 0; y < height; y++)
-                for (int x = 0; x < width; x++)
-                    map[y, x] = '#';
-
-            // 2. Maze-Carving starten
-            LabyrinthWege(map, 1, 1);
-
-            // 3. Start & Ende setzen
-            map[1, 1] = 'S';
-            map[height - 2, width - 2] = 'E';
-
-            // 4. Schätze setzen
-            for (int i = 0; i < 3; i++)
+            if (ny > 0 && ny < map.GetLength(0) - 1 &&
+                nx > 0 && nx < map.GetLength(1) - 1 &&
+                map[ny, nx] == '#')
             {
-                int x, y;
-                do
-                {
-                    x = rnd.Next(1, width - 1);
-                    y = rnd.Next(1, height - 1);
-                }
-                while (map[y, x] != '.');
+                // Wand zwischen den Zellen öffnen
+                map[y + d[0] / 2, x + d[1] / 2] = '.';
 
+                LabyrinthWege(map, ny, nx);
+            }
+        }
+    }
+
+
+    // Truhe setzen
+    private static void SetRandomChest(char[,] map, Random rnd)
+    {
+        int w = map.GetLength(1);
+        int h = map.GetLength(0);
+
+        while (true)
+        {
+            int x = rnd.Next(1, w - 1);
+            int y = rnd.Next(1, h - 1);
+
+            if (map[y, x] == '.')
+            {
                 map[y, x] = 'T';
+                return;
             }
-
-            return map;
         }
+    }
 
-        // Erstellung des Labyrinths
-        private static void LabyrinthWege(char[,] map, int y, int x)
+
+    // Ausgabe Farbig ausgeben
+    public static void PrintDungeonColored(char[,] map)
+    {
+        for (int y = 0; y < map.GetLength(0); y++)
         {
-            map[y, x] = '.';
-
-            // zufällige Richtungen
-            int[][] dirs = new int[][]
+            for (int x = 0; x < map.GetLength(1); x++)
             {
-            new []{ 0, 2 },
-            new []{ 0,-2 },
-            new []{ 2, 0 },
-            new []{-2, 0 }
-            };
+                char c = map[y, x];
 
-            // random
-            for (int i = 0; i < dirs.Length; i++)
-            {
-                int r = rnd.Next(dirs.Length);
-                (dirs[i], dirs[r]) = (dirs[r], dirs[i]);
+                if (c == '.')
+                    Console.ForegroundColor = ConsoleColor.DarkGray;
+                else if (c == '#')
+                    Console.ForegroundColor = ConsoleColor.White;
+                else if (c == 'S')
+                    Console.ForegroundColor = ConsoleColor.Green;
+                else if (c == 'E')
+                    Console.ForegroundColor = ConsoleColor.Red;
+                else if (c == 'T')
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                else
+                    Console.ForegroundColor = ConsoleColor.Gray;
+
+                Console.Write(c);
             }
-
-            // in jede Richtung gehen
-            for (int i = 0; i < dirs.Length; i++)
-            {
-                int[] d = dirs[i];
-
-                int nx = x + d[1];
-                int ny = y + d[0];
-
-                if (ny > 0 && ny < map.GetLength(0) - 1 &&
-                    nx > 0 && nx < map.GetLength(1) - 1 &&
-                    map[ny, nx] == '#')
-                {
-                    // Wand zwischen den Zeichen öffnen
-                    map[y + d[0] / 2, x + d[1] / 2] = '.';
-                    LabyrinthWege(map, ny, nx);
-                }
-            }
-
+            Console.WriteLine();
         }
 
-        // Methode zum Ausgeben
-        public static void PrintDungeon(char[,] map)
+        Console.ResetColor();
+    }
+
+
+    // Überprüfung der gültigen eingaben
+    static int EingabeZahl(string eingabe)
+    {
+        int zahl;
+        Console.Write(eingabe);
+        while (!int.TryParse(Console.ReadLine(), out zahl))
         {
-            int h = map.GetLength(0);
-            int w = map.GetLength(1);
-
-            for (int y = 0; y < h; y++)
-            {
-                for (int x = 0; x < w; x++)
-                {
-                    char c = map[y, x];
-
-                    if (c == '.') // Weg
-                        Console.ForegroundColor = ConsoleColor.DarkGray;
-                    else if (c == '#') // Wand
-                        Console.ForegroundColor = ConsoleColor.White;
-                    else if (c == 'S') // Start
-                        Console.ForegroundColor = ConsoleColor.Green;
-                    else if (c == 'E') // Ende
-                        Console.ForegroundColor = ConsoleColor.Red;
-                    else
-                        Console.ForegroundColor = ConsoleColor.Gray;
-
-                    Console.Write(c);
-                }
-
-                Console.WriteLine();
-            }
-
-            Console.ResetColor();
+            Console.Write("Ungültige Eingabe, bitte erneut eingeben: ");
         }
-
-
-        static int EingabeZahl(string eingabe)
-        {
-            int zahl;   
-            Console.Write(eingabe);
-            while (!int.TryParse(Console.ReadLine(), out zahl))
-            {
-                Console.Write("Ungültige Eingabe, bitte erneut eingeben: ");
-            }
-            return zahl;
-        }
-
+        return zahl;
     }
 }
