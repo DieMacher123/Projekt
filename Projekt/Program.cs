@@ -14,15 +14,119 @@ namespace Projekt
             int höhe = EingabeZahl("Höhe: ");
             int breite = EingabeZahl("Breite: ");
 
-            // Erstellung des dunguens
-            char[,] dunguen = new char[höhe, breite];
+            var dungeon = GenerateDungeon(höhe, breite); 
 
-            // Alles mit wänden Füllen
-            FüllenMitWänden(dunguen);
-
+            GenerateDungeon(höhe, breite);
+            PrintDungeon(dungeon);
             // Alles ausgeben
-            DungeonAusgeben(dunguen);
+            //PrintDungeon(dungeon);
             Console.ReadLine();
+        }
+
+        static Random rnd = new Random();
+
+        public static char[,] GenerateDungeon(int height, int width)
+        {
+            // Nur ungerade Maße funktionieren perfekt für Maze-Carving
+            if (height % 2 == 0) height++;
+            if (width % 2 == 0) width++;
+
+            char[,] map = new char[height, width];
+
+            // 1. Alles mit Wänden füllen
+            for (int y = 0; y < height; y++)
+                for (int x = 0; x < width; x++)
+                    map[y, x] = '#';
+
+            // 2. Maze-Carving starten
+            LabyrinthWege(map, 1, 1);
+
+            // 3. Start & Ende setzen
+            map[1, 1] = 'S';
+            map[height - 2, width - 2] = 'E';
+
+            // 4. Schätze setzen
+            for (int i = 0; i < 3; i++)
+            {
+                int x, y;
+                do
+                {
+                    x = rnd.Next(1, width - 1);
+                    y = rnd.Next(1, height - 1);
+                }
+                while (map[y, x] != '.');
+
+                map[y, x] = 'T';
+            }
+
+            return map;
+        }
+
+        private static void LabyrinthWege(char[,] map, int y, int x)
+        {
+            map[y, x] = '.';
+
+            // zufällige Richtungen
+            int[][] dirs = new int[][]
+            {
+            new []{ 0, 2 },
+            new []{ 0,-2 },
+            new []{ 2, 0 },
+            new []{-2, 0 }
+            };
+
+            // mischen
+            for (int i = 0; i < dirs.Length; i++)
+            {
+                int r = rnd.Next(dirs.Length);
+                (dirs[i], dirs[r]) = (dirs[r], dirs[i]);
+            }
+
+            // in jede Richtung graben
+            foreach (var d in dirs)
+            {
+                int nx = x + d[1];
+                int ny = y + d[0];
+
+                if (ny > 0 && ny < map.GetLength(0) - 1 &&
+                    nx > 0 && nx < map.GetLength(1) - 1 &&
+                    map[ny, nx] == '#')
+                {
+                    // Wand zwischen den Zellen öffnen
+                    map[y + d[0] / 2, x + d[1] / 2] = '.';
+                    LabyrinthWege(map, ny, nx);
+                }
+            }
+        }
+        public static void PrintDungeon(char[,] map)
+        {
+            int h = map.GetLength(0);
+            int w = map.GetLength(1);
+
+            for (int y = 0; y < h; y++)
+            {
+                for (int x = 0; x < w; x++)
+                {
+                    char c = map[y, x];
+
+                    if (c == '.')
+                        Console.ForegroundColor = ConsoleColor.DarkGray;
+                    else if (c == '#')
+                        Console.ForegroundColor = ConsoleColor.White;
+                    else if (c == 'S')
+                        Console.ForegroundColor = ConsoleColor.Green;
+                    else if (c == 'E')
+                        Console.ForegroundColor = ConsoleColor.Red;
+                    else
+                        Console.ForegroundColor = ConsoleColor.Gray;
+
+                    Console.Write(c);
+                }
+
+                Console.WriteLine();
+            }
+
+            Console.ResetColor();
         }
 
 
@@ -36,28 +140,6 @@ namespace Projekt
             }
             return zahl;
         }
-    
 
-        // Wände Füllen mit #
-        static void FüllenMitWänden(char[,] karte)
-        {
-            for (int y = 0; y < karte.GetLength(0); y++)
-                for (int x = 0; x < karte.GetLength(1); x++)
-                    karte[y, x] = '#';
-        }
-
-        // Dunguen ausgeben
-        static void DungeonAusgeben(char[,] karte)
-        {
-            for (int y = 0; y < karte.GetLength(0); y++)
-            {
-                for (int x = 0; x < karte.GetLength(1); x++)
-                {
-                    char feld = karte[y, x];
-                    Console.Write(feld);
-                }
-                Console.WriteLine();
-            }
-        }
     }
 }
