@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Security.Policy;
 
 class DungeonGenerator
 {
@@ -51,6 +50,14 @@ class DungeonGenerator
         Console.ReadLine();
     }
 
+    public static void Willkommen()
+    {
+        Console.WriteLine("--------------------------------------------------");
+        Console.WriteLine("        Willkommen zu diesem ZUFALLS-Dungeon      ");
+        Console.WriteLine("--------------------------------------------------");
+        Console.WriteLine("Breite und Länge sind erforderlich.");
+    }
+
     static string EingabeJaNein(string text)
     {
         Console.Write(text); // zeigt die Frage
@@ -80,14 +87,6 @@ class DungeonGenerator
         }
 
         return dungeonText; // gibt den Text zurück
-    }
-
-    public static void Willkommen()
-    {
-        Console.WriteLine("------------------------------------------");
-        Console.WriteLine("      Willkommen zu diesem Dungeon        ");
-        Console.WriteLine("------------------------------------------");
-        Console.WriteLine("Breite und Länge sind erforderlich.");
     }
 
     public static char[,] GenerateDungeon(int height, int width)
@@ -124,7 +123,6 @@ class DungeonGenerator
             }
         }
 
-
         LabyrinthWege(dungeon, 1, 1); // startet das Labyrinth
 
         int sx, sy; // Start Position
@@ -153,7 +151,6 @@ class DungeonGenerator
 
         dungeon[ey, ex] = 'E'; // setzt das Ende
 
-
         // macht auf jedem Wegfeld eine 5 Prozent Chance für Truhe oder Falle
         for (int y = 0; y < height; y++)
         {
@@ -179,10 +176,6 @@ class DungeonGenerator
                 }
             }
         }
-
-
-
-
         return dungeon; // gibt den Dungeon zurück
     }
 
@@ -244,7 +237,6 @@ class DungeonGenerator
             }
             Console.WriteLine(); // neue Zeile
         }
-
         Console.ResetColor(); // setzt die Farbe zurück
     }
 
