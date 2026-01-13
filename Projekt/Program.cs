@@ -101,6 +101,30 @@ class DungeonGenerator
             for (int x = 0; x < width; x++)
                 dungeon[y, x] = '#';
 
+        // macht 3 bis 5 Räume/breitere wege
+        int raumAnzahl = random.Next(3, 6);
+
+        for (int r = 0; r < raumAnzahl; r++)
+        {
+            // zufällige Größe
+            int raumBreite = random.Next(2, 4);
+            int raumHöhe = random.Next(2, 4);
+
+            // zufällige Position
+            int rx = random.Next(1, width - raumBreite - 1);
+            int ry = random.Next(1, height - raumHöhe - 1);
+
+            // Raum einzeichnen
+            for (int y = ry; y < ry + raumHöhe; y++)
+            {
+                for (int x = rx; x < rx + raumBreite; x++)
+                {
+                    dungeon[y, x] = '.'; // macht den Raum frei
+                }
+            }
+        }
+
+
         LabyrinthWege(dungeon, 1, 1); // startet das Labyrinth
 
         int sx, sy; // Start Position
@@ -114,19 +138,50 @@ class DungeonGenerator
         dungeon[sy, sx] = 'S'; // setzt den Start
 
         int ex, ey; // Ende Position
+        int abstand;
+
         do
         {
-            ex = random.Next(1, width - 1);
-            ey = random.Next(1, height - 1);
+            ex = random.Next(1, width - 1); // zufällige x Position
+            ey = random.Next(1, height - 1); // zufällige y Position
+
+            // berechnet den Abstand zwischen Start und Ende
+            abstand = Math.Abs(ex - sx) + Math.Abs(ey - sy);
+
         }
-        while (dungeon[ey, ex] != '.' || (ex == sx && ey == sy)); // darf nicht Start sein
+        while (dungeon[ey, ex] != '.' || abstand < 8); // prüft ob Weg und Abstand groß genug
 
         dungeon[ey, ex] = 'E'; // setzt das Ende
 
-        for (int i = 0; i < 5; i++) // setzt fünf Truhen
+
+        // macht auf jedem Wegfeld eine 5 Prozent Chance für Truhe oder Falle
+        for (int y = 0; y < height; y++)
         {
-            SetRandomChest(dungeon, random);
+            for (int x = 0; x < width; x++)
+            {
+                if (dungeon[y, x] == '.') // nur auf Wegen
+                {
+                    int chance = random.Next(100); // Zahl von 0 bis 99
+
+                    if (chance < 5) // 5 Prozent Chance dass etwas passiert
+                    {
+                        int art = random.Next(2); // gibt 0 oder 1
+
+                        if (art == 0)
+                        {
+                            dungeon[y, x] = 'T'; // Truhe
+                        }
+                        else
+                        {
+                            dungeon[y, x] = 'F'; // Falle
+                        }
+                    }
+                }
+            }
         }
+
+
+
 
         return dungeon; // gibt den Dungeon zurück
     }
@@ -169,24 +224,6 @@ class DungeonGenerator
         }
     }
 
-    private static void SetRandomChest(char[,] dungeon, Random rnd)
-    {
-        int w = dungeon.GetLength(1); // Breite
-        int h = dungeon.GetLength(0); // Höhe
-
-        while (true) // sucht einen Platz
-        {
-            int x = rnd.Next(1, w - 1); // zufällige x Position
-            int y = rnd.Next(1, h - 1); // zufällige y Position
-
-            if (dungeon[y, x] == '.') // nur auf Wegen erlaubt
-            {
-                dungeon[y, x] = 'T'; // setzt die Truhe
-                return; // fertig
-            }
-        }
-    }
-
     public static void PrintDungeonColored(char[,] dungeon)
     {
         for (int y = 0; y < dungeon.GetLength(0); y++) // geht jede Zeile durch
@@ -200,6 +237,7 @@ class DungeonGenerator
                 else if (c == 'S') Console.ForegroundColor = ConsoleColor.Green; // Start
                 else if (c == 'E') Console.ForegroundColor = ConsoleColor.Red; // Ende
                 else if (c == 'T') Console.ForegroundColor = ConsoleColor.Yellow; // Truhe
+                else if (c == 'F') Console.ForegroundColor = ConsoleColor.DarkRed; // Falle
                 else Console.ForegroundColor = ConsoleColor.Gray; // alles andere
 
                 Console.Write(c); // zeigt das Zeichen
