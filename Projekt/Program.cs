@@ -1,81 +1,141 @@
 ﻿using System;
+using System.IO;
+using System.Security.Policy;
 
 class DungeonGenerator
 {
-    static Random rnd = new Random();
+    static Random random = new Random(); // macht Zufallszahlen
+    static bool dungeonFertig = false; // merkt ob der Dungeon fertig ist
 
     static void Main()
     {
-        Console.WriteLine("Willkommen, bitte breite und länge eingeben: ");
+        Willkommen(); // zeigt eine Begrüßung
 
-        // Eingabe der höhe und breite
-        int höhe = EingabeZahl("Höhe: ");
-        int breite = EingabeZahl("Breite: ");
+        int höhe = EingabeZahl("Höhe (10–25): ", 10, 25); // fragt die Höhe ab (min, max)
+        int breite = EingabeZahl("Breite (10–50): ", 10, 50); // fragt die Breite ab (min, max)
 
-        // 2D Array für Dungeon erstellen
-        char[,] dungeon = GenerateDungeon(höhe, breite);
+        char[,] dungeon = GenerateDungeon(höhe, breite); // erstellt das Dungeon
 
-        // Ausgeben
-        PrintDungeonColored(dungeon);
+        Console.WriteLine("\nDungeon wurde erfolgreich generiert und ausgegeben!\n");
+
+        PrintDungeonColored(dungeon); // zeigt das Dungeon farbig
+        dungeonFertig = true; // Dungeon ist jetzt fertig
+
+        if (dungeonFertig)
+        {
+            string antwort = EingabeJaNein("\nDungeon speichern? (j/n): "); // fragt ob gespeichert wird
+
+            if (antwort == "j")
+            {
+                Console.Write("Dateiname ohne Endung: ");
+                string dateiName = Console.ReadLine(); // setzt den namen
+
+                // prüft ob der Name länger als 20 Zeichen lang ist
+                while (dateiName.Length > 20)
+                {
+                    Console.WriteLine("Der Name darf nur 20 Zeichen haben");
+                    Console.Write("Bitte neuen Namen eingeben: ");
+                    dateiName = Console.ReadLine(); // setzt neuen namen
+                }
+
+                string speicherText = DungeonToString(dungeon); // macht den Dungeon zu Text
+                string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop); // holt den Desktop Pfad
+
+                File.WriteAllText(Path.Combine(desktopPath, dateiName + ".txt"), speicherText); // speichert die Datei
+
+                Console.WriteLine("Dungeon wurde gespeichert!");
+            }
+
+        }
 
         Console.ReadLine();
     }
 
+    static string EingabeJaNein(string text)
+    {
+        Console.Write(text); // zeigt die Frage
+        string eingabe = Console.ReadLine().Trim().ToLower(); // speichert die Antwort
 
-    // Dungeon erzeugen
+        while (eingabe != "j" && eingabe != "n") // prüft ob die Antwort gültig ist
+        {
+            Console.WriteLine("Bitte nur j oder n eingeben.");
+            Console.Write(text);
+            eingabe = Console.ReadLine().Trim().ToLower();
+        }
+
+        return eingabe; // gibt die Antwort zurück
+    }
+
+    static string DungeonToString(char[,] dungeon)
+    {
+        string dungeonText = ""; // speichert den Text
+
+        for (int y = 0; y < dungeon.GetLength(0); y++) // geht jede Zeile durch
+        {
+            for (int x = 0; x < dungeon.GetLength(1); x++) // geht jede Spalte durch
+            {
+                dungeonText = dungeonText + dungeon[y, x]; // fügt das Zeichen hinzu
+            }
+            dungeonText = dungeonText + "\n"; // macht eine neue Zeile
+        }
+
+        return dungeonText; // gibt den Text zurück
+    }
+
+    public static void Willkommen()
+    {
+        Console.WriteLine("------------------------------------------");
+        Console.WriteLine("      Willkommen zu diesem Dungeon        ");
+        Console.WriteLine("------------------------------------------");
+        Console.WriteLine("Breite und Länge sind erforderlich.");
+    }
+
     public static char[,] GenerateDungeon(int height, int width)
     {
-        // Ungerade Länge und höhe des Dungeons erzwingen
-        if (height % 2 == 0) height++;
-        if (width % 2 == 0) width++;
+        if (height % 2 == 0) height++; // macht die Höhe ungerade
+        if (width % 2 == 0) width++; // macht die Breite ungerade
 
-        char[,] dungeon = new char[height, width];
+        char[,] dungeon = new char[height, width]; // erstellt das Feld
 
-        // Alles mit Wänden füllen
-        for (int y = 0; y < height; y++)
+        for (int y = 0; y < height; y++) // füllt alles mit Wänden
             for (int x = 0; x < width; x++)
                 dungeon[y, x] = '#';
 
-        // Maze erzeugen
-        LabyrinthWege(dungeon, 1, 1);
+        LabyrinthWege(dungeon, 1, 1); // startet das Labyrinth
 
-        // Start zufällig
-        int sx, sy;
+        int sx, sy; // Start Position
         do
         {
-            sx = rnd.Next(1, width - 1);
-            sy = rnd.Next(1, height - 1);
+            sx = random.Next(1, width - 1); // zufällige X Position
+            sy = random.Next(1, height - 1); // zufällige Y Position
         }
-        while (dungeon[sy, sx] != '.');
+        while (dungeon[sy, sx] != '.'); // nur auf einem Weg erlaubt
 
-        dungeon[sy, sx] = 'S';
+        dungeon[sy, sx] = 'S'; // setzt den Start
 
-        // Ende zufällig
-        int ex, ey;
+        int ex, ey; // Ende Position
         do
         {
-            ex = rnd.Next(1, width - 1);
-            ey = rnd.Next(1, height - 1);
+            ex = random.Next(1, width - 1);
+            ey = random.Next(1, height - 1);
         }
-        while (dungeon[ey, ex] != '.' || (ex == sx && ey == sy));
+        while (dungeon[ey, ex] != '.' || (ex == sx && ey == sy)); // darf nicht Start sein
 
-        dungeon[ey, ex] = 'E';
+        dungeon[ey, ex] = 'E'; // setzt das Ende
 
-        // Truhen setzen
-        for (int i = 0; i < 5; i++) { 
-            SetRandomChest(dungeon, rnd);
+        for (int i = 0; i < 5; i++) // setzt fünf Truhen
+        {
+            SetRandomChest(dungeon, random);
         }
-        return dungeon;
+
+        return dungeon; // gibt den Dungeon zurück
     }
 
-
-    // Labyrinth Wege erstellen
     private static void LabyrinthWege(char[,] dungeon, int y, int x)
     {
-        dungeon[y, x] = '.';
+        dungeon[y, x] = '.'; // macht einen Weg
 
-        // mögliche rintungen (dirs)
-        int[][] dirs = new int[][]
+        int[][] dirs = new int[][] // mögliche Richtungen
         {
             new int[]{ 0, 2 },
             new int[]{ 0,-2 },
@@ -83,104 +143,86 @@ class DungeonGenerator
             new int[]{-2, 0 }
         };
 
-        // Richtungen zufällig generieren
-        for (int i = 0; i < dirs.Length; i++)
+        for (int i = 0; i < dirs.Length; i++) // mischt die Richtungen
         {
-            int r = rnd.Next(dirs.Length);
+            int r = random.Next(dirs.Length);
             int[] temp = dirs[i];
             dirs[i] = dirs[r];
             dirs[r] = temp;
         }
 
-        // In jede Richtung gehen
-        for (int i = 0; i < dirs.Length; i++)
+        for (int i = 0; i < dirs.Length; i++) // geht jede Richtung durch
         {
-            // Aktuelle Richtung aus dem Array holen (dy, dx)
-            int[] d = dirs[i];
+            int[] d = dirs[i]; // nimmt eine Richtung
 
-            // Neue Zielposition generieren (2 Felder weiter)
-            int nx = x + d[1]; // neue x Position
-            int ny = y + d[0]; // neue y Position
+            int nx = x + d[1]; // neues x
+            int ny = y + d[0]; // neues y
 
-            // Prüfen ob die neue Position gültig ist ->
-            // Im Spielfeld? Ja/Nein
-            // Ist da eine Wand? Ja/Nein
             if (ny > 0 && ny < dungeon.GetLength(0) - 1 &&
                 nx > 0 && nx < dungeon.GetLength(1) - 1 &&
-                dungeon[ny, nx] == '#')
+                dungeon[ny, nx] == '#') // prüft ob dort eine Wand ist
             {
-                // Die Wand zwischen aktueller Position und neuer Position entfernen
-                // Beispiel: von (5,5) nach (5,7) -> Wand ist bei (5,6)
-                dungeon[y + d[0] / 2, x + d[1] / 2] = '.';
+                dungeon[y + d[0] / 2, x + d[1] / 2] = '.'; // macht die Wand weg
 
-                LabyrinthWege(dungeon, ny, nx);
+                LabyrinthWege(dungeon, ny, nx); // geht weiter
             }
         }
-
     }
 
-
-    // Truhe setzen
     private static void SetRandomChest(char[,] dungeon, Random rnd)
     {
-        // Größe des dungeons
-        int w = dungeon.GetLength(1);
-        int h = dungeon.GetLength(0);
+        int w = dungeon.GetLength(1); // Breite
+        int h = dungeon.GetLength(0); // Höhe
 
-        while (true)
+        while (true) // sucht einen Platz
         {
-            int x = rnd.Next(1, w - 1);
-            int y = rnd.Next(1, h - 1);
+            int x = rnd.Next(1, w - 1); // zufällige x Position
+            int y = rnd.Next(1, h - 1); // zufällige y Position
 
-            if (dungeon[y, x] == '.')
+            if (dungeon[y, x] == '.') // nur auf Wegen erlaubt
             {
-                dungeon[y, x] = 'T';
-                return;
+                dungeon[y, x] = 'T'; // setzt die Truhe
+                return; // fertig
             }
         }
     }
 
-
-    // Ausgabe Farbig ausgeben
     public static void PrintDungeonColored(char[,] dungeon)
     {
-        for (int y = 0; y < dungeon.GetLength(0); y++)
+        for (int y = 0; y < dungeon.GetLength(0); y++) // geht jede Zeile durch
         {
-            for (int x = 0; x < dungeon.GetLength(1); x++)
+            for (int x = 0; x < dungeon.GetLength(1); x++) // geht jede Spalte durch
             {
-                char c = dungeon[y, x];
+                char c = dungeon[y, x]; // holt das Zeichen
 
-                if (c == '.') // Weg
-                    Console.ForegroundColor = ConsoleColor.DarkGray;
-                else if (c == '#') // Wand
-                    Console.ForegroundColor = ConsoleColor.White;
-                else if (c == 'S') // Start
-                    Console.ForegroundColor = ConsoleColor.Green;
-                else if (c == 'E') // Ende
-                    Console.ForegroundColor = ConsoleColor.Red;
-                else if (c == 'T') // Truhe
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                else
-                    Console.ForegroundColor = ConsoleColor.Gray;
+                if (c == '.') Console.ForegroundColor = ConsoleColor.DarkGray; // Weg
+                else if (c == '#') Console.ForegroundColor = ConsoleColor.White; // Wand
+                else if (c == 'S') Console.ForegroundColor = ConsoleColor.Green; // Start
+                else if (c == 'E') Console.ForegroundColor = ConsoleColor.Red; // Ende
+                else if (c == 'T') Console.ForegroundColor = ConsoleColor.Yellow; // Truhe
+                else Console.ForegroundColor = ConsoleColor.Gray; // alles andere
 
-                Console.Write(c);
+                Console.Write(c); // zeigt das Zeichen
             }
-            Console.WriteLine();
+            Console.WriteLine(); // neue Zeile
         }
 
-        Console.ResetColor();
+        Console.ResetColor(); // setzt die Farbe zurück
     }
 
-
-    // Überprüfung der gültigen eingaben
-    static int EingabeZahl(string eingabe)
+    static int EingabeZahl(string text, int min, int max)
     {
+        Console.Write(text); // zeigt die Frage
+        string input = Console.ReadLine(); // liest die Eingabe
         int zahl;
-        Console.Write(eingabe);
-        while (!int.TryParse(Console.ReadLine(), out zahl))
+
+        while (!int.TryParse(input, out zahl) || zahl < min || zahl > max) // prüft die Zahl
         {
-            Console.Write("Ungültige Eingabe, bitte erneut eingeben: ");
+            Console.WriteLine($"Bitte eine Zahl zwischen {min} und {max} eingeben.");
+            Console.Write(text);
+            input = Console.ReadLine();
         }
-        return zahl;
+
+        return zahl; // gibt die gültige Zahl zurück
     }
 }
