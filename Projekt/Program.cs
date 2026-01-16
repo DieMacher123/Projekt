@@ -9,7 +9,6 @@ class DungeonGenerator
     static void Main()
     {
         Start();
-   
     }
 
     public static void Start()
@@ -17,26 +16,29 @@ class DungeonGenerator
         Console.Clear();
         Console.WriteLine("1. Spiel Starten");
         Console.WriteLine("2. Dokumentation");
-        Console.WriteLine("3. Grüner Nico");
+        Console.WriteLine("3. Beenden");
         int Eingabe = EingabeZahl("Eingabe: ", 1, 3);
         switch (Eingabe)
         {
             case 1:
-                Console.WriteLine("Nico Grüner");
                 startDungeon();
                 break;
             case 2:
-                Console.WriteLine("Nico Grüner");
                 Dokumentation();
                 break;
             case 3:
-                Console.WriteLine("Nico Grüner");
-                Start();
+                Beenden();
                 break;
             default:
                 break;
-
         }
+    }
+
+    public static void Beenden()
+    {
+        Console.WriteLine("Das Programm wird beenden.")
+        
+        Environment.Exit(0);
     }
 
     public static void Dokumentation()
@@ -96,17 +98,15 @@ class DungeonGenerator
         Console.WriteLine("\n-----------------------------------------------------\n");
 
         Console.WriteLine("1. Spiel Starten");
-        Console.WriteLine("2. Main Menu");
+        Console.WriteLine("2. Hauptmenü");
 
         int Eingabe = EingabeZahl("Eingabe: ", 1, 2);
         switch (Eingabe)
         {
             case 1:
-                Console.WriteLine("Nico Grüner");
                 startDungeon();
                 break;
             case 2:
-                Console.WriteLine("Nico Grüner");
                 Start();
                 break;
             default:
@@ -159,18 +159,16 @@ class DungeonGenerator
             } else if (antwort == "n")
             {
                 Console.WriteLine("Dungeon wurde nicht gespeichert!\n");
-                Console.WriteLine("1. Main Menu");
+                Console.WriteLine("1. Hauptmenü");
                 Console.WriteLine("2. Beenden");
                 int Eingabe = EingabeZahl("Eingabe: ", 1, 2);
                 switch (Eingabe)
                 {
                     case 1:
-                        Console.WriteLine("Nico Grüner");
                         Start();
                         break;
                     case 2:
-                        Console.WriteLine("Nico Grüner");
-                        Environment.Exit(0);
+                        Beenden();
                         break;
                     default:
                         break;
