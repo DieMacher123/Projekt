@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-internal class DungeonGenerator
+class DungeonGenerator
 {
     private static Random random = new Random(); // macht Zufallszahlen
     private static bool dungeonFertig = false; // merkt ob der Dungeon fertig ist
