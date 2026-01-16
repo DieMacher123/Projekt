@@ -2,12 +2,14 @@
 using System.IO;
 using System.Threading;
 
-internal class DungeonGenerator
+class DungeonGenerator
 {
     // Zufall, Status und Objektchance für Truhen/Fallen
     private static Random random = new Random();
+
     private static bool dungeonFertig = false;
     private static int objektChance = 5;
+    private static bool animation = false;
 
     // Einstiegspunkt des Programms -> zeigt das Hauptmenü
     private static void Main()
@@ -18,6 +20,11 @@ internal class DungeonGenerator
     // Hauptmenü des Spiels
     public static void Start()
     {
+        if (!animation)
+        {
+            LadeBildschirm("Fertig geladen!", 100);
+        }
+
         Console.Clear();
         Console.WriteLine("1. Spiel Starten\n2. Dokumentation\n3. Beenden");
 
@@ -34,13 +41,35 @@ internal class DungeonGenerator
     public static void Beenden()
     {
         Console.Clear();
-        Console.Write("Das Programm wird beenden");
-        for (int i = 0; i < 3; i++)
-        {
-            Console.Write(".");
-            Thread.Sleep(1000);
-        }
+        LadeBildschirm("Das Programm wird beendet :(", 0);
         Environment.Exit(0);
+    }
+
+    private static void LadeBildschirm(string ende, int dauer)
+    {
+        int breite = 40;                     // Länge des Balkens
+        int schritte = 100;                  // Prozent-Schritte
+        int pause = dauer / schritte;        // Zeit pro Schritt
+        animation = true;
+
+        Console.Clear();
+
+        for (int i = 0; i <= schritte; i++)
+        {
+            int gefüllt = (i * breite) / 100; // berechnet gefüllte Balkenlänge
+
+            string balken = "["
+                            + new string('#', gefüllt)
+                            + new string('-', breite - gefüllt)
+                            + "]";
+
+            Console.Write($"\r{balken} {i}%"); // \r überschreibt die Zeile
+
+            Thread.Sleep(pause); // kurze Pause für Animation
+        }
+
+        InformationsMeldung($"\n{ende}"); // neue Zeile nach Fertigstellung
+        Thread.Sleep(800);
     }
 
     // Hilfsmethoden für farbige Meldungen
