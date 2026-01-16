@@ -1,15 +1,19 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
 
 class DungeonGenerator
 {
     private static Random random = new Random(); // macht Zufallszahlen
     private static bool dungeonFertig = false; // merkt ob der Dungeon fertig ist
+    private static int objektChance = 5; // chance für Truhen, Fallen
 
     private static void Main()
     {
         Start();
     }
+   
+    //TODO: soll datei überschrieben werden abfragen
 
     public static void Start()
     {
@@ -29,12 +33,32 @@ class DungeonGenerator
 
     public static void Beenden()
     {
-        Console.WriteLine("Das Programm wird beenden...");
-
+        Console.Clear();
+        Console.Write("Das Programm wird beenden");
+        for (int i = 0; i < 3; i++)
+        {
+            Console.Write(".");
+            Thread.Sleep(1000);
+        }
+        
         Environment.Exit(0); // Programm beenden
     }
+    
+    private static void InformationsMeldung(string text)
+    {
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine(text);
+        Console.ResetColor();
+    }
 
-    private static void Info(char symbol, ConsoleColor farbe, string text)
+    private static void FehlerMeldung(string text)
+    {
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine(text);
+        Console.ResetColor();
+    }
+
+    private static void DokuInfo(char symbol, ConsoleColor farbe, string text)
     {
         Console.ForegroundColor = farbe;
         Console.Write(symbol + " ");
@@ -48,12 +72,12 @@ class DungeonGenerator
         Console.WriteLine("--------------- DUNGEON DOKUMENTATION ---------------\n");
         Console.WriteLine("In diesem Dungeon können folgende Elemente erscheinen:\n");
 
-        Info('#', ConsoleColor.White, "Wand – blockiert den Weg.");
-        Info('.', ConsoleColor.DarkGray, "Weg – begehbares Feld.");
-        Info('S', ConsoleColor.Green, "Startpunkt – hier startet es.");
-        Info('E', ConsoleColor.Red, "Ausgang – Ziel des Dungeons.");
-        Info('T', ConsoleColor.Yellow, "Truhe – enthält Belohnungen.");
-        Info('F', ConsoleColor.DarkRed, "Falle – verursacht Schaden oder Nachteile.");
+        DokuInfo('#', ConsoleColor.White, "Wand – blockiert den Weg.");
+        DokuInfo('.', ConsoleColor.DarkGray, "Weg – begehbares Feld.");
+        DokuInfo('S', ConsoleColor.Green, "Startpunkt – hier startet es.");
+        DokuInfo('E', ConsoleColor.Red, "Ausgang – Ziel des Dungeons.");
+        DokuInfo('T', ConsoleColor.Yellow, "Truhe – enthält Belohnungen.");
+        DokuInfo('F', ConsoleColor.DarkRed, "Falle – verursacht Schaden oder Nachteile.");
 
         Console.WriteLine();
         Console.ForegroundColor = ConsoleColor.Cyan;
@@ -67,7 +91,7 @@ class DungeonGenerator
         Console.WriteLine("\n-----------------------------------------------------\n");
 
         Console.WriteLine("1. Spiel Starten\n" +
-                              "2. Hauptmenü");
+                          "2. Hauptmenü");
 
         int Eingabe = EingabeZahl("Eingabe: ", 1, 2); // Min 1, Max 2
         switch (Eingabe)
@@ -86,21 +110,26 @@ class DungeonGenerator
 
         int höhe = EingabeZahl("Höhe (10–25): ", 10, 25);   // fragt die Höhe ab (min, max)
         int breite = EingabeZahl("Breite (10–50): ", 10, 50); // fragt die Breite ab (min, max)
+        objektChance = EingabeZahl("Object chance (1-100): ", 1, 100); // fragt die objekt chance ab (min, max)
 
         char[,] dungeon = GenerateDungeon(höhe, breite); // erstellt das Dungeon
 
-        Console.WriteLine("\nDungeon wurde erfolgreich generiert und ausgegeben!\n");
-
-        PrintDungeonColored(dungeon); // zeigt das Dungeon farbig
+        Console.WriteLine("");
+        FarbigeAusgabe(dungeon); // zeigt das Dungeon farbig
         dungeonFertig = true;         // Dungeon ist jetzt fertig
+
+        InformationsMeldung("\nDungeon wurde erfolgreich generiert und ausgegeben!\n" +
+                            $"Höhe: {höhe}\n" +
+                            $"Breite: {breite}\n" +
+                            $"Objekt chance: {objektChance}%");
 
         if (dungeonFertig)
         {
-            string antwort = EingabeJaNein("\nDungeon speichern? (j/n): "); // fragt ob gespeichert wird
+            string antwort = EingabeJaNein("\nDungeon speichern? (Ja/Nein): "); // fragt ob gespeichert wird
 
-            if (antwort == "j")
+            if (antwort.ToLower() == "ja")
             {
-                Console.Write("Dateiname: ");
+                Console.Write("Datei name: ");
 
                 char[] ungültig = Path.GetInvalidFileNameChars(); // speichert einen array mit invaliden zeichen
 
@@ -111,26 +140,26 @@ class DungeonGenerator
                 {
                     if (dateiName.Length > 200)
                     {
-                        Console.WriteLine("Der Name darf nur 20 Zeichen haben!");
+                        FehlerMeldung("Der Name darf nur 20 Zeichen haben!");
                     }
                     else if (dateiName.IndexOfAny(ungültig) >= 0)
                     {
-                        Console.WriteLine("Keine Sonderzeichen!");
+                        FehlerMeldung("Keine Sonderzeichen!");
                     }
-                    Console.Write("Bitte neuen Namen eingeben: ");
+                    Console.Write("Bitte neuen Datei Namen eingeben: ");
                     dateiName = Console.ReadLine(); // setzt neuen Namen
                 }
 
-                string speicherText = DungeonToString(dungeon); // macht den Dungeon zu Text
+                string speicherText = ArrayToText(dungeon); // macht den Dungeon zu Text
                 string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop); // holt den Desktop Pfad
 
                 File.WriteAllText(Path.Combine(desktopPath, dateiName + ".txt"), speicherText); // speichert die Datei
 
-                Console.WriteLine("Dungeon wurde gespeichert!");
+                InformationsMeldung("Dungeon wurde gespeichert!");
             }
-            else if (antwort == "n")
+            else if (antwort.ToLower() == "nein")
             {
-                Console.WriteLine("Dungeon wurde nicht gespeichert!");
+                InformationsMeldung("Dungeon wurde nicht gespeichert!");
             }
             Console.WriteLine("\n1. Hauptmenü" +
                               "\n2. Beenden");
@@ -228,7 +257,7 @@ class DungeonGenerator
                 {
                     int chance = random.Next(100); // Zahl von 0 bis 99
 
-                    if (chance < 5) // 5 Prozent Chance dass etwas passiert
+                    if (chance < objektChance) // 5 Prozent Chance dass etwas passiert
                     {
                         int art = random.Next(2); // gibt 0 oder 1
 
@@ -278,14 +307,14 @@ class DungeonGenerator
                 nx > 0 && nx < dungeon.GetLength(1) - 1 &&
                 dungeon[ny, nx] == '#') // prüft ob dort eine Wand ist
             {
-                dungeon[y + d[0] / 2, x + d[1] / 2] = '.'; // macht die Wand weg
+                dungeon[y + d[0] / 2, x + d[1] / 2] = '.'; // verbindet die wände zwischen den gesetzten punkten
 
                 LabyrinthWege(dungeon, ny, nx); // geht weiter
             }
         }
     }
 
-    public static void PrintDungeonColored(char[,] dungeon)
+    public static void FarbigeAusgabe(char[,] dungeon)
     {
         for (int y = 0; y < dungeon.GetLength(0); y++) // geht jede Zeile durch
         {
@@ -314,14 +343,14 @@ class DungeonGenerator
     private static int EingabeZahl(string text, int min, int max)
     {
         Console.Write(text); // zeigt die Frage
-        string input = Console.ReadLine(); // liest die Eingabe
+        string eingabe = Console.ReadLine(); // liest die Eingabe
         int zahl;
 
-        while (!int.TryParse(input, out zahl) || zahl < min || zahl > max) // prüft die Zahl
+        while (!int.TryParse(eingabe, out zahl) || zahl < min || zahl > max) // prüft die Zahl
         {
-            Console.WriteLine($"Bitte eine Zahl zwischen {min} und {max} eingeben.");
+            FehlerMeldung($"Bitte eine Zahl zwischen {min} und {max} eingeben.");
             Console.Write(text);
-            input = Console.ReadLine();
+            eingabe = Console.ReadLine();
         }
 
         return zahl; // gibt die gültige Zahl zurück
@@ -332,9 +361,9 @@ class DungeonGenerator
         Console.Write(text); // zeigt die Frage
         string eingabe = Console.ReadLine().Trim().ToLower(); // speichert die Antwort
 
-        while (eingabe != "j" && eingabe != "n") // prüft ob die Antwort gültig ist
+        while (eingabe != "ja" && eingabe != "nein") // prüft ob die Antwort gültig ist
         {
-            Console.WriteLine("Bitte nur j oder n eingeben.");
+            FehlerMeldung("Bitte nur Ja oder Nein eingeben.");
             Console.Write(text);
             eingabe = Console.ReadLine().Trim().ToLower();
         }
@@ -342,7 +371,7 @@ class DungeonGenerator
         return eingabe; // gibt die Antwort zurück
     }
 
-    private static string DungeonToString(char[,] dungeon)
+    private static string ArrayToText(char[,] dungeon)
     {
         string dungeonText = ""; // speichert den Text
 
