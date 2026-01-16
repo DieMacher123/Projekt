@@ -107,7 +107,7 @@ class DungeonGenerator
                 string dateiName = Console.ReadLine(); // setzt den Namen
 
                 // prüft ob der Name länger als 200 Zeichen lang ist
-                while (dateiName.IndexOfAny(ungültig) >= 0)
+                while (dateiName.IndexOfAny(ungültig) >= 0 || dateiName.Length > 200)
                 {
                     if (dateiName.Length > 200)
                     {
