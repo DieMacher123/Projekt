@@ -17,28 +17,21 @@ class DungeonGenerator
         Console.WriteLine("1. Spiel Starten");
         Console.WriteLine("2. Dokumentation");
         Console.WriteLine("3. Beenden");
+        
         int Eingabe = EingabeZahl("Eingabe: ", 1, 3);
         switch (Eingabe)
         {
-            case 1:
-                startDungeon();
-                break;
-            case 2:
-                Dokumentation();
-                break;
-            case 3:
-                Beenden();
-                break;
-            default:
-                break;
+            case 1: startDungeon(); break;
+            case 2: Dokumentation(); break;
+            case 3: Beenden(); break;
         }
     }
 
     public static void Beenden()
     {
-        Console.WriteLine("Das Programm wird beenden.")
+        Console.WriteLine("Das Programm wird beenden...")
         
-        Environment.Exit(0);
+        Environment.Exit(0); // Programm beenden
     }
 
     public static void Dokumentation()
@@ -103,15 +96,8 @@ class DungeonGenerator
         int Eingabe = EingabeZahl("Eingabe: ", 1, 2);
         switch (Eingabe)
         {
-            case 1:
-                startDungeon();
-                break;
-            case 2:
-                Start();
-                break;
-            default:
-                break;
-
+            case 1: startDungeon(); break;
+            case 2: Start(); break;
         }
 
         Console.ReadLine();
@@ -161,17 +147,12 @@ class DungeonGenerator
                 Console.WriteLine("Dungeon wurde nicht gespeichert!\n");
                 Console.WriteLine("1. Hauptmenü");
                 Console.WriteLine("2. Beenden");
+                
                 int Eingabe = EingabeZahl("Eingabe: ", 1, 2);
                 switch (Eingabe)
                 {
-                    case 1:
-                        Start();
-                        break;
-                    case 2:
-                        Beenden();
-                        break;
-                    default:
-                        break;
+                    case 1: Start(); break;
+                    case 2: Beenden(); break;
                 }
             }
         }
@@ -361,13 +342,16 @@ class DungeonGenerator
             {
                 char c = dungeon[y, x]; // holt das Zeichen
 
-                if (c == '.') Console.ForegroundColor = ConsoleColor.DarkGray; // Weg
-                else if (c == '#') Console.ForegroundColor = ConsoleColor.White; // Wand
-                else if (c == 'S') Console.ForegroundColor = ConsoleColor.Green; // Start
-                else if (c == 'E') Console.ForegroundColor = ConsoleColor.Red; // Ende
-                else if (c == 'T') Console.ForegroundColor = ConsoleColor.Yellow; // Truhe
-                else if (c == 'F') Console.ForegroundColor = ConsoleColor.DarkRed; // Falle
-                else Console.ForegroundColor = ConsoleColor.Gray; // alles andere
+                switch (c)
+                {
+                    case '.': Console.ForegroundColor = ConsoleColor.DarkGray; break; // Weg
+                    case '#': Console.ForegroundColor = ConsoleColor.White;    break; // Wand
+                    case 'S': Console.ForegroundColor = ConsoleColor.Green;    break; // Start
+                    case 'E': Console.ForegroundColor = ConsoleColor.Red;      break; // Ende
+                    case 'T': Console.ForegroundColor = ConsoleColor.Yellow;   break; // Truhe
+                    case 'F': Console.ForegroundColor = ConsoleColor.DarkRed;  break; // Falle
+                    default:  Console.ForegroundColor = ConsoleColor.Gray;     break; // alles andere
+                }
 
                 Console.Write(c); // zeigt das Zeichen
             }
